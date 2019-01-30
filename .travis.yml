@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t erwee402/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run erwee402/react-test npm run test -- --coverage
+
+after_success:
+  - docker build -t erwee402/multi-client ./client
+  - docker build -t erwee402/multi-nginx ./nginx
+  - docker build -t erwee402/multi-server ./server
+  - docker build -t erwee402/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  # Push images to docker hub
+  - docker push erwee402/multi-client
+  - docker push erwee402/multi-nginx
+  - docker push erwee402/multi-server
+  - docker push erwee402/multi-worker
